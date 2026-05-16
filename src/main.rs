@@ -145,9 +145,17 @@ fn main() -> std::io::Result<()> {
                         {
                             app_path = app.path.as_deref().unwrap_or("");
                             println!("Executing command: {} {}", app_path, args);
-                            match Command::new(app_path).raw_arg(args).spawn() {
-                                Ok(_) => {
-                                    println!("Command executed successfully");
+                            match Command::new(app_path).raw_arg(args).output() {
+                                Ok(output) => {
+                                    if !output.status.success() {
+                                        let stderr = String::from_utf8_lossy(&output.stderr);
+                                        if !stderr.is_empty() {
+                                            show_message_box(
+                                                "Error",
+                                                stderr.as_ref(),
+                                            );
+                                        }
+                                    }
                                 }
                                 Err(e) => {
                                     show_message_box(
